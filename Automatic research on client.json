@@ -1,0 +1,712 @@
+{
+  "name": "mainflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2e064b4f-cbcf-4619-bb41-a63cad98bf79",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        0
+      ],
+      "id": "4d4b261f-f28e-40ad-9fab-dd46f5364799",
+      "name": "Webhook",
+      "webhookId": "2e064b4f-cbcf-4619-bb41-a63cad98bf79"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Client information:\nname:{{ $json.Name }} Email: {{ $json.Email }}\nCompany:{{ $json['Company name'] }}\nRequest: {{ $json['Request description'] }}\n\n1. Establish a research framework centred on client's request and the client's company background\n2. Utilise the Tavily tool to acquire the latest knowledge from the internet\n3. Return structured research findings based on the established research framework",
+        "options": {
+          "systemMessage": "## Overview\nYou are a professional research assistant responsible for preparing preliminary research on clients and their potential requirements.\n\n## Tools\n- Tavily (for research and citations).\n\n## Citation Guidelines\n- Use Tavily to gather information and cite sources\n- For each key statement or piece of information, include an embedded citation with a hyperlink\n- Format citations as HTML links with explanatory text: <a href=\"[URL]\">[Source: Publication Name]</a>\n- Use quotation marks when directly quoting sources, including the citation\n\n## SOP (Standard Operating Procedure)\n- Establish a research framework (including questions to elicit client requirements, pain points, and detailed information on client company).\n- Conduct research according to the framework whilst rigorously validating iterative findings using Tavily (not exceeding three searches).\n- Adhere to citation guidelines when referencing online materials.\n- Finally, extract a structured report from the content (including reference links).\n\n\nPlease refer to the JSON format below:\n{\"Client Research Report\":{\"Client\":\"\",\"Date\":\",\"Project Objective\":\"\",\"Research Structure\":[\"\"],\"Research Findings\":{\"Client Requirements\":[\"\"],\"Technical Feasibility\":[\"\"],\"Workflow Optimisation\":[\"\"],\"Pain Points\":[\"\"],\"Pricing & Timelines\":[\"\"]},\"Client Communication\":{\"Introduction\":\"\",\"Workflow and Process Issues\":[{\"Content Strategy\":[\"\"]},{\"Current Process Pain Points\":[\"\"]},{\"Technical Detail Preferences\":[\"\"]},{\"Quality Assurance\":[\"\"]},{\"Long-Term Vision\":[\"\"]}],\"Summary\":\"\"}}}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "f2f16ac6-0135-4438-8061-26161ef44857",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1svW1h3kRmmuXUNMNOYafCPmASoCvyYGGDi4VYhNG4FQ",
+          "mode": "list",
+          "cachedResultName": "request sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1svW1h3kRmmuXUNMNOYafCPmASoCvyYGGDi4VYhNG4FQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "工作表1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1svW1h3kRmmuXUNMNOYafCPmASoCvyYGGDi4VYhNG4FQ/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $json.body.payload.attendees[0].email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "ec5263db-2dfc-4e14-b7d8-988f8605afd8",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "atfR4l5bN9Nt5dwm",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        208
+      ],
+      "id": "81939a01-7144-45af-85a5-7c5b461c4da4",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "O1iALqYX5XBN5l8E",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "call this tool to search information on web",
+        "workflowId": {
+          "__rl": true,
+          "value": "NGEHDCVtuDlUvLY5",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/NGEHDCVtuDlUvLY5",
+          "cachedResultName": "tavily"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $json['Company name'] }} {{ $json['Request description'] }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        208
+      ],
+      "id": "4cab49d1-7629-4459-ab98-a88a16184bb5",
+      "name": "Call 'tavily'"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output }}",
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\"Client Research Report\":{\"Client\":\"\",\"Date\":\"\",\"Project Objective\":\"\",\"Research Structure\":[\"\"],\"Research Findings\":{\"Client Requirements\":[\"\"],\"Technical Feasibility\":[\"\"],\"Workflow Optimisation\":[\"\"],\"Pain Points\":[\"\"],\"Pricing & Timelines\":[\"\"]},\"Client Communication\":{\"Introduction\":\"\",\"Workflow and Process Issues\":[{\"Content Strategy\":[\"\"]},{\"Current Process Pain Points\":[\"\"]},{\"Technical Detail Preferences\":[\"\"]},{\"Quality Assurance\":[\"\"]},{\"Long-Term Vision\":[\"\"]}],\"Summary\":[\"\"],\"Citations\": [\"\"]}}}",
+        "options": {
+          "systemPromptTemplate": "keep the citation link"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "faba1f97-bbe9-4ea0-882e-cbf25835581c",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        208
+      ],
+      "id": "81cee532-5c59-457c-8223-4b5383bc5b63",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "O1iALqYX5XBN5l8E",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const data = item.json.output[\"Client Research Report\"];\n\n  const html = `\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <title>Client Research Report</title>\n      <meta charset=\"UTF-8\">\n      <style>\n        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }\n        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n        h2 { color: #34495e; margin-top: 25px; }\n        h3 { color: #2c3e50; margin-top: 20px; }\n        h4 { color: #34495e; margin-top: 15px; }\n        ul { margin: 10px 0; padding-left: 20px; }\n        li { margin: 5px 0; }\n        p { margin: 10px 0; }\n        strong { color: #2c3e50; }\n        a { color: #3498db; text-decoration: none; }\n        a:hover { text-decoration: underline; }\n      </style>\n    </head>\n    <body>\n      <h1>Client Research Report</h1>\n      \n      <p><strong>Client:</strong> ${data.Client}</p>\n      <p><strong>Date:</strong> ${data.Date}</p>\n      <p><strong>Project Objective:</strong> ${data[\"Project Objective\"]}</p>\n      \n      <h2>Research Structure</h2>\n      <ul>\n        ${data[\"Research Structure\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      \n      <h2>Research Findings</h2>\n      <h3>Client Requirements</h3>\n      <ul>\n        ${data[\"Research Findings\"][\"Client Requirements\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      <h3>Technical Feasibility</h3>\n      <ul>\n        ${data[\"Research Findings\"][\"Technical Feasibility\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      <h3>Workflow Optimisation</h3>\n      <ul>\n        ${data[\"Research Findings\"][\"Workflow Optimisation\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      <h3>Pain Points</h3>\n      <ul>\n        ${data[\"Research Findings\"][\"Pain Points\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      <h3>Pricing & Timelines</h3>\n      <ul>\n        ${data[\"Research Findings\"][\"Pricing & Timelines\"].map(item => `<li>${item}</li>`).join('')}\n      </ul>\n      \n      <h2>Client Communication</h2>\n      <h3>Introduction</h3>\n      <p>${data[\"Client Communication\"].Introduction}</p>\n      \n      <h3>Workflow and Process Issues</h3>\n      ${data[\"Client Communication\"][\"Workflow and Process Issues\"].map(category => `\n        ${Object.entries(category).map(([key, value]) => `\n          <h4>${key}</h4>\n          <ul>\n            ${value.map(item => `<li>${item}</li>`).join('')}\n          </ul>\n        `).join('')}\n      `).join('')}\n      \n      <h3>Summary</h3>\n      <p>${Array.isArray(data[\"Client Communication\"].Summary) \n            ? data[\"Client Communication\"].Summary.join(\"<br>\") \n            : data[\"Client Communication\"].Summary}</p>\n\n      ${data[\"Client Communication\"].Citations \n        ? `\n          <h3>Citations</h3>\n          <ul>\n            ${data[\"Client Communication\"].Citations.map(link => \n              `<li><a href=\"${link}\" target=\"_blank\">${link}</a></li>`).join('')}\n          </ul>\n        `\n        : \"\"\n      }\n    </body>\n    </html>\n  `;\n\n  item.json.htmlEmailTemplate = html;\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        0
+      ],
+      "id": "4a79dafc-f035-463f-8752-5343c80f98a3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.payload.organizer.email }}",
+        "subject": "Hello, this is the preliminary report of your client",
+        "message": "={{ $json.htmlEmailTemplate }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        0
+      ],
+      "id": "4943f425-8e08-4391-939e-d08bed6c5ab4",
+      "name": "Send a message",
+      "webhookId": "d33ed0bf-09b5-4a08-a7a7-450998b6d14e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BLzhFR7RvvirNipc",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Trigger by meeting booking",
+        "height": 496,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "ec391768-5411-46da-9082-25bb15e88887",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Match client info in the form by email",
+        "height": 496,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "93ae07be-7f3a-48e6-94bf-fc00e196d1dd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Conduct research on client company and request",
+        "height": 496,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        128,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "eda6fb38-8aa9-4ebe-b3c2-281286e6de36",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Extract and restructure to HTML",
+        "height": 496,
+        "width": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "07537ac1-b431-43bb-8a66-fb27880286dc",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "daixiao.app.n8n.cloud",
+            "user-agent": "node",
+            "content-length": "2668",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "*",
+            "baggage": "sentry-environment=vercel-production,sentry-public_key=7fa2ea46dede9404597bde582525baca,sentry-trace_id=f6c71a123a4343b4b184441719159cb6,sentry-sampled=false,sentry-sample_rand=0.9215777161923538,sentry-sample_rate=0",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "18.188.231.229",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "984d782df0bff865-ORD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "sec-fetch-mode": "cors",
+            "sentry-trace": "f6c71a123a4343b4b184441719159cb6-25328e42df0b26df-0",
+            "x-cal-signature-256": "no-secret-provided",
+            "x-forwarded-for": "18.188.231.229, 172.70.130.185",
+            "x-forwarded-host": "daixiao.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-87-bcb9f59f7-tfbjj",
+            "x-is-trusted": "yes",
+            "x-real-ip": "18.188.231.229",
+            "x-vercel-id": "fra1:fra1::jdbbq-1758834216504-e563d993c925"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "triggerEvent": "BOOKING_CREATED",
+            "createdAt": "2025-09-25T21:03:39.086Z",
+            "payload": {
+              "bookerUrl": "https://cal.com",
+              "title": "15 分钟会议 between Xiaoxian Dai and Xiaoxian Dai",
+              "startTime": "2025-09-26T07:45:00+00:00",
+              "endTime": "2025-09-26T08:00:00+00:00",
+              "additionalNotes": "",
+              "type": "15min",
+              "description": "",
+              "eventTypeId": 3413082,
+              "hideCalendarNotes": false,
+              "hideCalendarEventDetails": false,
+              "hideOrganizerEmail": false,
+              "schedulingType": null,
+              "seatsPerTimeSlot": null,
+              "seatsShowAttendees": true,
+              "seatsShowAvailabilityCount": true,
+              "customReplyToEmail": null,
+              "disableRescheduling": false,
+              "disableCancelling": false,
+              "organizer": {
+                "id": 1777885,
+                "name": "Xiaoxian Dai",
+                "email": "daixiaoxian0710@gmail.com",
+                "username": "xiaoxian-dai-n78kq2",
+                "timeZone": "Europe/Zurich",
+                "language": {
+                  "locale": "en"
+                },
+                "timeFormat": "h:mma",
+                "utcOffset": 120
+              },
+              "attendees": [
+                {
+                  "email": "daixiaoxian0710@gmail.com",
+                  "name": "Xiaoxian Dai",
+                  "firstName": "",
+                  "lastName": "",
+                  "timeZone": "Europe/Zurich",
+                  "language": {
+                    "locale": "zh-CN"
+                  },
+                  "utcOffset": 120
+                }
+              ],
+              "customInputs": {},
+              "responses": {
+                "name": {
+                  "label": "your_name",
+                  "value": "Xiaoxian Dai",
+                  "isHidden": false
+                },
+                "email": {
+                  "label": "email_address",
+                  "value": "daixiaoxian0710@gmail.com",
+                  "isHidden": false
+                },
+                "attendeePhoneNumber": {
+                  "label": "phone_number",
+                  "isHidden": true
+                },
+                "location": {
+                  "label": "location",
+                  "value": {
+                    "value": "integrations:google:meet",
+                    "optionValue": ""
+                  },
+                  "isHidden": false
+                },
+                "title": {
+                  "label": "what_is_this_meeting_about",
+                  "isHidden": true
+                },
+                "notes": {
+                  "label": "additional_notes",
+                  "isHidden": false
+                },
+                "guests": {
+                  "label": "additional_guests",
+                  "value": [],
+                  "isHidden": false
+                },
+                "rescheduleReason": {
+                  "label": "reason_for_reschedule",
+                  "isHidden": false
+                }
+              },
+              "userFieldsResponses": {},
+              "location": "integrations:google:meet",
+              "destinationCalendar": [
+                {
+                  "id": 833807,
+                  "integration": "google_calendar",
+                  "externalId": "daixiaoxian0710@gmail.com",
+                  "primaryEmail": "daixiaoxian0710@gmail.com",
+                  "userId": 1777885,
+                  "eventTypeId": null,
+                  "credentialId": 1348254,
+                  "createdAt": "2025-09-21T11:34:35.096Z",
+                  "updatedAt": "2025-09-21T11:34:35.096Z",
+                  "delegationCredentialId": null,
+                  "domainWideDelegationCredentialId": null
+                }
+              ],
+              "iCalUID": "aKdcP9cKktDn6V37nizb4x@Cal.com",
+              "iCalSequence": 0,
+              "requiresConfirmation": false,
+              "oneTimePassword": null,
+              "uid": "aKdcP9cKktDn6V37nizb4x",
+              "conferenceData": {
+                "createRequest": {
+                  "requestId": "8a0ce172-f69a-51b5-8481-93feb73d58e2"
+                }
+              },
+              "appsStatus": [
+                {
+                  "appName": "google-calendar",
+                  "type": "google_calendar",
+                  "success": 1,
+                  "failures": 0,
+                  "errors": [],
+                  "warnings": []
+                },
+                {
+                  "appName": "Google Meet",
+                  "type": "conferencing",
+                  "success": 1,
+                  "failures": 0,
+                  "errors": []
+                }
+              ],
+              "eventTitle": "15 分钟会议",
+              "eventDescription": null,
+              "price": 0,
+              "currency": "usd",
+              "length": 15,
+              "bookingId": 11218958,
+              "metadata": {
+                "videoCallUrl": "https://meet.google.com/uut-fntw-tvt"
+              },
+              "status": "ACCEPTED"
+            }
+          },
+          "webhookUrl": "https://daixiao.app.n8n.cloud/webhook-test/2e064b4f-cbcf-4619-bb41-a63cad98bf79",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "AI Agent": [
+      {
+        "json": {
+          "output": "{\"Client Research Report\":{\"Client\":\"Kelly\",\"Date\":\"2024-06\",\"Project Objective\":\"Support marketing automation for Telix Pharma's CRM system\",\"Research Structure\":[\"Understand Telix Pharma's company background and marketing needs\",\"Investigate marketing automation trends and best practices in pharmaceutical CRM\",\"Analyze the specific benefits and key features of marketing automation in pharma CRM systems\"],\"Research Findings\":{\"Client Requirements\":[\"Telix Pharma needs support to enhance their marketing automation integrated with their CRM system, focusing on multi-channel digital marketing campaigns including web, search, social, email, and programmatic advertising.\"],\"Technical Feasibility\":[\"Marketing automation capabilities should include seamless integration with sales management, compliance adherence, and operational workflow optimization within the CRM system.\"],\"Workflow Optimisation\":[\"Optimizing the workflow involves automating campaign execution, lead nurturing, data tracking, and performance analytics to achieve regional and global audience engagement.\"],\"Pain Points\":[\"Potential challenges include data privacy compliance, cookie management affecting tracking, and the need for interdisciplinary coordination across marketing and sales teams.\"],\"Pricing & Timelines\":[\"Specific pricing details were not found; timelines would depend on the scope of automation and integration complexity specific to Telix Pharma's requirements.\"]},\"Client Communication\":{\"Introduction\":\"Kelly, based on research, Telix Pharma is an innovative pharmaceutical company focusing on precision medicine through targeted radiation, seeking advanced marketing automation integrated with CRM to drive digital campaigns.\",\"Workflow and Process Issues\":[{\"Content Strategy\":[\"Need to strategize digital marketing across multiple channels including search, social media, email, and programmatic advertising.\" ]},{\"Current Process Pain Points\":[\"Challenges in tracking user data due to cookie management and ensuring compliance with data privacy requirements.\" ]},{\"Technical Detail Preferences\":[\"Preference for automation solutions that integrate smoothly with existing sales management and compliance systems in the CRM.\" ]},{\"Quality Assurance\":[\"Importance of monitoring campaign performance and ensuring accurate data analytics in automated processes.\" ]},{\"Long-Term Vision\":[\"Aim to deliver precise and efficient marketing campaigns supporting regional and global growth objectives in pharmaceutical precision medicine.\" ]}],\"Summary\":\"Telix Pharma requires a tailored marketing automation solution integrated with their CRM system that supports multi-channel digital marketing while ensuring compliance and data integrity. Workflow efficiency and precise campaign analytics are critical. A phased plan focusing on technical integration, privacy compliance, and campaign execution optimization is recommended.\"}}"
+        }
+      }
+    ],
+    "Information Extractor": [
+      {
+        "json": {
+          "output": {
+            "Client Research Report": {
+              "Client": "Kelly",
+              "Date": "2024-06",
+              "Project Objective": "Support marketing automation for Telix Pharma's CRM system",
+              "Research Structure": [
+                "Understand Telix Pharma's company background and marketing needs",
+                "Investigate marketing automation trends and best practices in pharmaceutical CRM",
+                "Analyze the specific benefits and key features of marketing automation in pharma CRM systems"
+              ],
+              "Research Findings": {
+                "Client Requirements": [
+                  "Telix Pharma needs support to enhance their marketing automation integrated with their CRM system, focusing on multi-channel digital marketing campaigns including web, search, social, email, and programmatic advertising."
+                ],
+                "Technical Feasibility": [
+                  "Marketing automation capabilities should include seamless integration with sales management, compliance adherence, and operational workflow optimization within the CRM system."
+                ],
+                "Workflow Optimisation": [
+                  "Optimizing the workflow involves automating campaign execution, lead nurturing, data tracking, and performance analytics to achieve regional and global audience engagement."
+                ],
+                "Pain Points": [
+                  "Potential challenges include data privacy compliance, cookie management affecting tracking, and the need for interdisciplinary coordination across marketing and sales teams."
+                ],
+                "Pricing & Timelines": [
+                  "Specific pricing details were not found; timelines would depend on the scope of automation and integration complexity specific to Telix Pharma's requirements."
+                ]
+              },
+              "Client Communication": {
+                "Introduction": "Kelly, based on research, Telix Pharma is an innovative pharmaceutical company focusing on precision medicine through targeted radiation, seeking advanced marketing automation integrated with CRM to drive digital campaigns.",
+                "Workflow and Process Issues": [
+                  {
+                    "Content Strategy": [
+                      "Need to strategize digital marketing across multiple channels including search, social media, email, and programmatic advertising."
+                    ],
+                    "Current Process Pain Points": [
+                      "Challenges in tracking user data due to cookie management and ensuring compliance with data privacy requirements."
+                    ],
+                    "Technical Detail Preferences": [
+                      "Preference for automation solutions that integrate smoothly with existing sales management and compliance systems in the CRM."
+                    ],
+                    "Quality Assurance": [
+                      "Importance of monitoring campaign performance and ensuring accurate data analytics in automated processes."
+                    ],
+                    "Long-Term Vision": [
+                      "Aim to deliver precise and efficient marketing campaigns supporting regional and global growth objectives in pharmaceutical precision medicine."
+                    ]
+                  }
+                ],
+                "Summary": [
+                  "Telix Pharma requires a tailored marketing automation solution integrated with their CRM system that supports multi-channel digital marketing while ensuring compliance and data integrity.",
+                  "Workflow efficiency and precise campaign analytics are critical.",
+                  "A phased plan focusing on technical integration, privacy compliance, and campaign execution optimization is recommended."
+                ],
+                "Citations": [
+                  "https://www.telixpharma.com",
+                  "https://www.marketingautomationinsights.com/pharmaceutical-crm-best-practices",
+                  "https://www.digitalmarketingtrends.com/healthcare-automation"
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    "Code in JavaScript": [
+      {
+        "json": {
+          "output": {
+            "Client Research Report": {
+              "Client": "Kelly",
+              "Date": "2024-06",
+              "Project Objective": "Support marketing automation for Telix Pharma's CRM system",
+              "Research Structure": [
+                "Understand Telix Pharma's company background and marketing needs",
+                "Investigate marketing automation trends and best practices in pharmaceutical CRM",
+                "Analyze the specific benefits and key features of marketing automation in pharma CRM systems"
+              ],
+              "Research Findings": {
+                "Client Requirements": [
+                  "Telix Pharma needs support to enhance their marketing automation integrated with their CRM system, focusing on multi-channel digital marketing campaigns including web, search, social, email, and programmatic advertising."
+                ],
+                "Technical Feasibility": [
+                  "Marketing automation capabilities should include seamless integration with sales management, compliance adherence, and operational workflow optimization within the CRM system."
+                ],
+                "Workflow Optimisation": [
+                  "Optimizing the workflow involves automating campaign execution, lead nurturing, data tracking, and performance analytics to achieve regional and global audience engagement."
+                ],
+                "Pain Points": [
+                  "Potential challenges include data privacy compliance, cookie management affecting tracking, and the need for interdisciplinary coordination across marketing and sales teams."
+                ],
+                "Pricing & Timelines": [
+                  "Specific pricing details were not found; timelines would depend on the scope of automation and integration complexity specific to Telix Pharma's requirements."
+                ]
+              },
+              "Client Communication": {
+                "Introduction": "Kelly, based on research, Telix Pharma is an innovative pharmaceutical company focusing on precision medicine through targeted radiation, seeking advanced marketing automation integrated with CRM to drive digital campaigns.",
+                "Workflow and Process Issues": [
+                  {
+                    "Content Strategy": [
+                      "Need to strategize digital marketing across multiple channels including search, social media, email, and programmatic advertising."
+                    ],
+                    "Current Process Pain Points": [
+                      "Challenges in tracking user data due to cookie management and ensuring compliance with data privacy requirements."
+                    ],
+                    "Technical Detail Preferences": [
+                      "Preference for automation solutions that integrate smoothly with existing sales management and compliance systems in the CRM."
+                    ],
+                    "Quality Assurance": [
+                      "Importance of monitoring campaign performance and ensuring accurate data analytics in automated processes."
+                    ],
+                    "Long-Term Vision": [
+                      "Aim to deliver precise and efficient marketing campaigns supporting regional and global growth objectives in pharmaceutical precision medicine."
+                    ]
+                  }
+                ],
+                "Summary": [
+                  "Telix Pharma requires a tailored marketing automation solution integrated with their CRM system that supports multi-channel digital marketing while ensuring compliance and data integrity.",
+                  "Workflow efficiency and precise campaign analytics are critical.",
+                  "A phased plan focusing on technical integration, privacy compliance, and campaign execution optimization is recommended."
+                ],
+                "Citations": [
+                  "https://www.telixpharma.com",
+                  "https://www.marketingautomationinsights.com/pharmaceutical-crm-best-practices",
+                  "https://www.digitalmarketingtrends.com/healthcare-automation"
+                ]
+              }
+            }
+          },
+          "htmlEmailTemplate": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <title>Client Research Report</title>\n      <meta charset=\"UTF-8\">\n      <style>\n        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }\n        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n        h2 { color: #34495e; margin-top: 25px; }\n        h3 { color: #2c3e50; margin-top: 20px; }\n        h4 { color: #34495e; margin-top: 15px; }\n        ul { margin: 10px 0; padding-left: 20px; }\n        li { margin: 5px 0; }\n        p { margin: 10px 0; }\n        strong { color: #2c3e50; }\n        a { color: #3498db; text-decoration: none; }\n        a:hover { text-decoration: underline; }\n      </style>\n    </head>\n    <body>\n      <h1>Client Research Report</h1>\n      \n      <p><strong>Client:</strong> Kelly</p>\n      <p><strong>Date:</strong> 2024-06</p>\n      <p><strong>Project Objective:</strong> Support marketing automation for Telix Pharma's CRM system</p>\n      \n      <h2>Research Structure</h2>\n      <ul>\n        <li>Understand Telix Pharma's company background and marketing needs</li><li>Investigate marketing automation trends and best practices in pharmaceutical CRM</li><li>Analyze the specific benefits and key features of marketing automation in pharma CRM systems</li>\n      </ul>\n      \n      <h2>Research Findings</h2>\n      <h3>Client Requirements</h3>\n      <ul>\n        <li>Telix Pharma needs support to enhance their marketing automation integrated with their CRM system, focusing on multi-channel digital marketing campaigns including web, search, social, email, and programmatic advertising.</li>\n      </ul>\n      <h3>Technical Feasibility</h3>\n      <ul>\n        <li>Marketing automation capabilities should include seamless integration with sales management, compliance adherence, and operational workflow optimization within the CRM system.</li>\n      </ul>\n      <h3>Workflow Optimisation</h3>\n      <ul>\n        <li>Optimizing the workflow involves automating campaign execution, lead nurturing, data tracking, and performance analytics to achieve regional and global audience engagement.</li>\n      </ul>\n      <h3>Pain Points</h3>\n      <ul>\n        <li>Potential challenges include data privacy compliance, cookie management affecting tracking, and the need for interdisciplinary coordination across marketing and sales teams.</li>\n      </ul>\n      <h3>Pricing & Timelines</h3>\n      <ul>\n        <li>Specific pricing details were not found; timelines would depend on the scope of automation and integration complexity specific to Telix Pharma's requirements.</li>\n      </ul>\n      \n      <h2>Client Communication</h2>\n      <h3>Introduction</h3>\n      <p>Kelly, based on research, Telix Pharma is an innovative pharmaceutical company focusing on precision medicine through targeted radiation, seeking advanced marketing automation integrated with CRM to drive digital campaigns.</p>\n      \n      <h3>Workflow and Process Issues</h3>\n      \n        \n          <h4>Content Strategy</h4>\n          <ul>\n            <li>Need to strategize digital marketing across multiple channels including search, social media, email, and programmatic advertising.</li>\n          </ul>\n        \n          <h4>Current Process Pain Points</h4>\n          <ul>\n            <li>Challenges in tracking user data due to cookie management and ensuring compliance with data privacy requirements.</li>\n          </ul>\n        \n          <h4>Technical Detail Preferences</h4>\n          <ul>\n            <li>Preference for automation solutions that integrate smoothly with existing sales management and compliance systems in the CRM.</li>\n          </ul>\n        \n          <h4>Quality Assurance</h4>\n          <ul>\n            <li>Importance of monitoring campaign performance and ensuring accurate data analytics in automated processes.</li>\n          </ul>\n        \n          <h4>Long-Term Vision</h4>\n          <ul>\n            <li>Aim to deliver precise and efficient marketing campaigns supporting regional and global growth objectives in pharmaceutical precision medicine.</li>\n          </ul>\n        \n      \n      \n      <h3>Summary</h3>\n      <p>Telix Pharma requires a tailored marketing automation solution integrated with their CRM system that supports multi-channel digital marketing while ensuring compliance and data integrity.<br>Workflow efficiency and precise campaign analytics are critical.<br>A phased plan focusing on technical integration, privacy compliance, and campaign execution optimization is recommended.</p>\n\n      \n          <h3>Citations</h3>\n          <ul>\n            <li><a href=\"https://www.telixpharma.com\" target=\"_blank\">https://www.telixpharma.com</a></li><li><a href=\"https://www.marketingautomationinsights.com/pharmaceutical-crm-best-practices\" target=\"_blank\">https://www.marketingautomationinsights.com/pharmaceutical-crm-best-practices</a></li><li><a href=\"https://www.digitalmarketingtrends.com/healthcare-automation\" target=\"_blank\">https://www.digitalmarketingtrends.com/healthcare-automation</a></li>\n          </ul>\n        \n    </body>\n    </html>\n  "
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'tavily'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c2ca542b-6fd9-457d-a121-9fc6cd23843d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1234f8ad1774ea16e5c29c1f1e52122c16fa7723f192e4eb4e869a89078f47d4"
+  },
+  "id": "X05mhtON7XJ8XrkY",
+  "tags": []
+}

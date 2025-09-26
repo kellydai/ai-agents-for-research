@@ -1,0 +1,117 @@
+{
+  "name": "Tavily",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.query }}\",\n  \"search_depth\": \"basic\",\n  \"include_answer\": true,\n  \"include_raw_content\": true,\n  \"max_results\": 3\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        -48
+      ],
+      "id": "e39760dc-45e2-476b-a44e-f04e08e04375",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1qlxOxkjuNsI4cY3",
+          "name": "Tavily"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "348a5d64-6217-4036-86a8-39573f3bc253",
+              "name": "response",
+              "value": "=[Source 0]\ntitle: {{ $json.results[0].title }}\nurl:{{ $json.results[0].url }}\ncontent:{{ $json.results[0].content }}\n\n[Source 1]\ntitle: {{ $json.results[1].title }}\nurl:{{ $json.results[1].url }}\ncontent:{{ $json.results[1].content }}\n\n[Source 2]\ntitle: {{ $json.results[2].title }}\nurl:{{ $json.results[2].url }}\ncontent:{{ $json.results[2].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "251fd25b-1cba-4f38-8854-2e8d684d1a84",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        -48
+      ],
+      "id": "4980e09e-5c79-45d1-8940-11c2aafea160",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "da61c605-7d93-42d6-954e-e9a8d34206c9",
+  "meta": {
+    "instanceId": "1234f8ad1774ea16e5c29c1f1e52122c16fa7723f192e4eb4e869a89078f47d4"
+  },
+  "id": "NGEHDCVtuDlUvLY5",
+  "tags": []
+}
